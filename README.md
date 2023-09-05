@@ -1,13 +1,12 @@
 # waldur-metrics-exporter
 
-
-Available commands:
+## Available commands
 
 - manage.py migrate
 - manage.py update_limits
 - manage.py update_usages
 
-Available env variables:
+## Available env variables
 
 - START_YEAR
 - METRICS_DB_NAME
