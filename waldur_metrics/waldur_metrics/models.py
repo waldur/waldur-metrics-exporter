@@ -29,7 +29,7 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
-class AggregatedLimitMetric(TimeStampedModel):
+class AggregatedCountryLimitMetric(TimeStampedModel):
     date = models.DateField()
     country = models.CharField(max_length=7)
     component_type = models.CharField(max_length=255)
@@ -37,10 +37,10 @@ class AggregatedLimitMetric(TimeStampedModel):
     usage_since_beginning_of_year = models.IntegerField()
 
     class Meta:
-        db_table = 'aggregated_limit_metrics'
+        db_table = 'aggregated_country_limit_metrics'
 
 
-class AggregatedUsageMetric(TimeStampedModel):
+class AggregatedCountryUsageMetric(TimeStampedModel):
     date = models.DateField()
     country = models.CharField(max_length=7)
     component_type = models.CharField(max_length=255)
@@ -50,4 +50,4 @@ class AggregatedUsageMetric(TimeStampedModel):
     )
 
     class Meta:
-        db_table = 'aggregated_usage_metrics'
+        db_table = 'aggregated_country_usage_metrics'

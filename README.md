@@ -3,8 +3,8 @@
 ## Available commands
 
 - manage.py migrate
-- manage.py update_limits
-- manage.py update_usages
+- manage.py update_country_limits
+- manage.py update_country_usage
 
 ## Available env variables
 
@@ -20,3 +20,24 @@
 - SOURCE_DB_PASSWORD
 - SOURCE_DB_HOST
 - SOURCE_DB_PORT
+
+# Deployment in Kubernetes
+
+1. Install PostgreSQL release:
+
+    ```bash
+    helm repo add bitnami https://charts.bitnami.com/bitnami
+    helm install postgresql-waldur-metrics-exporter bitnami/postgresql --version 12.2.8 -f k8s/psql-values.yaml -n puhuri-services
+    ```
+
+2. Prepare DB structure
+
+    ```bash
+    kubectl apply -f k8s/tracker_db_init.yaml -n puhuri-services
+    ```
+
+3. Deploy aai_tracker cron job
+
+    ```bash
+    kubectl apply -f k8s/tracker_cron_limits.yaml -n puhuri-services
+    ```

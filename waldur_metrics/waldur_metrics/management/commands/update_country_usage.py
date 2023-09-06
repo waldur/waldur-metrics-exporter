@@ -21,4 +21,4 @@ class Command(BaseCommand):
     def handle(
         self, deep=False, year=None, country=None, component_type=None, *args, **options
     ):
-        utils.update_usages(deep, year, country, component_type)
+        utils.update_country_usage(deep, year, country, component_type)

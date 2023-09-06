@@ -21,4 +21,4 @@ class Command(BaseCommand):
     def handle(
         self, deep=False, year=None, country=None, component_type=None, *args, **options
     ):
-        utils.update_limits(deep, year, country, component_type)
+        utils.update_country_limits(deep, year, country, component_type)

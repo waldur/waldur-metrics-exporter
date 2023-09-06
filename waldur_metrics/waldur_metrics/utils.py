@@ -58,7 +58,7 @@ def _init_func(klass, deep, country, component_type):
     return countries, component_types
 
 
-def update_usages(deep=False, year=None, country=None, component_type=None):
+def update_country_usage(deep=False, year=None, country=None, component_type=None):
     countries, component_types = _init_func(
         models.AggregatedUsageMetric, deep, country, component_type
     )
@@ -156,7 +156,7 @@ def get_grow_limit(limit, item):
     return 0
 
 
-def update_limits(deep=False, year=None, country=None, component_type=None):
+def update_country_limits(deep=False, year=None, country=None, component_type=None):
     countries, component_types = _init_func(
         models.AggregatedUsageMetric, deep, country, component_type
     )

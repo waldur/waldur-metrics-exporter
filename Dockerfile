@@ -7,5 +7,4 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 WORKDIR /app
 
-CMD ["python", "waldur_metrics/manage.py", "update_limits"]
-
+CMD ["python", "waldur_metrics/manage.py", "update_country_limits"]
