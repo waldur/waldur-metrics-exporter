@@ -60,7 +60,7 @@ def _init_func(klass, deep, country, component_type):
 
 def update_country_usage(deep=False, year=None, country=None, component_type=None):
     countries, component_types = _init_func(
-        models.AggregatedUsageMetric, deep, country, component_type
+        models.AggregatedCountryUsageMetric, deep, country, component_type
     )
 
     for country in countries:
@@ -73,7 +73,7 @@ def update_country_usage(deep=False, year=None, country=None, component_type=Non
                 start_year = year
             else:
                 last_metric = (
-                    models.AggregatedUsageMetric.objects.filter(
+                    models.AggregatedCountryUsageMetric.objects.filter(
                         country=country,
                         component_type=component_type,
                     )
@@ -109,7 +109,7 @@ def update_country_usage(deep=False, year=None, country=None, component_type=Non
                 )
 
                 prev_usage_during_month = (
-                    models.AggregatedUsageMetric.objects.filter(
+                    models.AggregatedCountryUsageMetric.objects.filter(
                         country=country,
                         component_type=component_type,
                         date__lt=start,
@@ -118,7 +118,7 @@ def update_country_usage(deep=False, year=None, country=None, component_type=Non
                     or 0
                 )
 
-                models.AggregatedUsageMetric.objects.update_or_create(
+                models.AggregatedCountryUsageMetric.objects.update_or_create(
                     date=start,
                     country=country,
                     component_type=component_type,
@@ -158,7 +158,7 @@ def get_grow_limit(limit, item):
 
 def update_country_limits(deep=False, year=None, country=None, component_type=None):
     countries, component_types = _init_func(
-        models.AggregatedUsageMetric, deep, country, component_type
+        models.AggregatedCountryLimitMetric, deep, country, component_type
     )
 
     for country in countries:
@@ -170,7 +170,7 @@ def update_country_limits(deep=False, year=None, country=None, component_type=No
             start_year = year
         else:
             last_metric = (
-                models.AggregatedLimitMetric.objects.filter(
+                models.AggregatedCountryLimitMetric.objects.filter(
                     country=country,
                 )
                 .order_by('-date')
@@ -231,7 +231,7 @@ def update_country_limits(deep=False, year=None, country=None, component_type=No
                 )
 
                 prev_usage_during_month = (
-                    models.AggregatedLimitMetric.objects.filter(
+                    models.AggregatedCountryLimitMetric.objects.filter(
                         country=country,
                         component_type=limit,
                         date__lt=start,
@@ -240,7 +240,7 @@ def update_country_limits(deep=False, year=None, country=None, component_type=No
                     or 0
                 )
 
-                models.AggregatedLimitMetric.objects.update_or_create(
+                models.AggregatedCountryLimitMetric.objects.update_or_create(
                     date=start,
                     country=country,
                     component_type=limit,
