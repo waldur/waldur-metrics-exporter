@@ -1,0 +1,17 @@
+nameOverride: 'waldur-metrics-exporter'
+
+auth:
+  username: "waldur"
+  database: "waldur-metrics-exporter"
+
+primary:
+  persistence:
+    size: "5Gi"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "1024Mi"
+      cpu: "1000m"
+

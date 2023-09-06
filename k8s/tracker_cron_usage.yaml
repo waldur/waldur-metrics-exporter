@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: waldur-metrics-exporter-usage-cron
+spec:
+  schedule: "50 6 * * *"
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 1200
+      template:
+        metadata:
+          labels:
+            app: waldur-metrics-exporter
+        spec:
+          containers:
+            - name: waldur-metrics-exporter-usage-cron
+              image: registry.hpc.ut.ee/mirror/opennode/waldur-metrics-exporter:latest
+              command: [ "python", "waldur_metrics/manage.py", "update_country_usage" ]
+              resources:
+                limits:
+                  memory: "128Mi"
+                  cpu: "500m"
+              env:
+              - name: START_YEAR
+                value: "2021"
+              - name: METRICS_DB_USER
+                value: "waldur"
+              - name: METRICS_DB_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: "postgresql-waldur-metrics-exporter"
+                    key: "password"
+              - name: METRICS_DB_NAME
+                value: "waldur-metrics-exporter"
+              - name: METRICS_DB_HOST
+                value: "postgresql-waldur-metrics-exporter"
+              - name: METRICS_DB_PORT
+                value: "5432"
+              - name: SOURCE_DB_USER
+                value: "puhuri_stats"
+              - name: SOURCE_DB_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: "puhuri-stats.waldur-postgresql"
+                    key: "password"
+              - name: SOURCE_DB_NAME
+                value: "waldur"
+              - name: SOURCE_DB_HOST
+                value: "waldur-postgresql-repl.puhuri-core.svc.cluster.local"
+              - name: SOURCE_DB_PORT
+                value: "5432"
+          restartPolicy: Never
