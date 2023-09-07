@@ -122,8 +122,11 @@ def update_country_usage(deep=False, year=None, country=None, component_type=Non
                     date=start,
                     country=country,
                     component_type=component_type,
-                    usage_during_month=usages,
-                    usage_since_beginning_of_year=usages + prev_usage_during_month,
+                    defaults={
+                        'usage_during_month': usages,
+                        'usage_since_beginning_of_year': usages
+                        + prev_usage_during_month,
+                    },
                 )
 
 
@@ -244,7 +247,9 @@ def update_country_limits(deep=False, year=None, country=None, component_type=No
                     date=start,
                     country=country,
                     component_type=limit,
-                    usage_during_month=limit_value_sum,
-                    usage_since_beginning_of_year=limit_value_sum
-                    + prev_usage_during_month,
+                    defaults={
+                        'usage_during_month': limit_value_sum,
+                        'usage_since_beginning_of_year': limit_value_sum
+                        + prev_usage_during_month,
+                    },
                 )
