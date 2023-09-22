@@ -51,3 +51,13 @@ class AggregatedCountryUsageMetric(TimeStampedModel):
 
     class Meta:
         db_table = 'aggregated_country_usage_metrics'
+
+
+class AggregatedCountryQuotaMetric(TimeStampedModel):
+    date = models.DateField()
+    country = models.CharField(max_length=7)
+    quota_name = models.CharField(max_length=255)
+    quota = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        db_table = 'aggregated_country_quota_metrics'

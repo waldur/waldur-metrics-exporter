@@ -1,11 +1,16 @@
 import datetime
 import os
+import re
 
+from dateutil.relativedelta import relativedelta
 from django.db.models import Sum
 
 from waldur_metrics import models, waldur_models, waldur_utils
 
 START_YEAR = int(os.environ.get('START_YEAR', '2020'))
+COUNTRY_LIMITS_FILE_PATH = os.environ.get(
+    'COUNTRY_LIMITS_FILE_PATH', '../country_limits.csv'
+)
 
 
 def date_iterator(start_year=0, start_month=0):
@@ -253,3 +258,86 @@ def update_country_limits(deep=False, year=None, country=None, component_type=No
                         + prev_usage_during_month,
                     },
                 )
+
+
+def update_country_quotas(force=False):
+    if force:
+        models.AggregatedCountryQuotaMetric.objects.all().delete()
+
+    def create_intermediate_records(date, country, quota_name):
+        date = date.date()
+
+        try:
+            prev = (
+                models.AggregatedCountryQuotaMetric.objects.filter(
+                    country=country,
+                    quota_name=quota_name,
+                    date__lt=date,
+                )
+                .order_by('-date')
+                .first()
+            )
+        except models.AggregatedCountryQuotaMetric.DoesNotExist:
+            return
+
+        if not prev:
+            return
+
+        current = prev.date + relativedelta(months=1)
+
+        while current < date:
+            (obj, created,) = models.AggregatedCountryQuotaMetric.objects.get_or_create(
+                country=country,
+                date=current,
+                quota_name=quota_name,
+                defaults={'quota': prev.quota or 0},
+            )
+
+            if created:
+                print(country, date, quota_name, value)
+
+            current += relativedelta(months=1)
+
+    def clear_commas(s):
+        return re.sub(r'^[^a-zA-Z]+|[^a-zA-Z]+$', '', s)
+
+    with open(COUNTRY_LIMITS_FILE_PATH, newline='') as csvfile:
+        headers = clear_commas(csvfile.readline())
+        limits_count = len(re.findall(r',+', headers)[0])
+        countries = re.findall(r'[a-zA-Z]+', headers)
+
+        quotas_headers = clear_commas(csvfile.readline()).split(',')[1:]
+
+        for row in csvfile:
+            data = row.split(',')
+            date = datetime.datetime.strptime(data[0], '%d.%m.%Y')
+
+            for index, value in enumerate(data[1:]):
+                try:
+                    country = countries[
+                        int((index - index % limits_count) / limits_count)
+                    ]
+                    quota_name = quotas_headers[index]
+                except IndexError:
+                    continue
+
+                (
+                    obj,
+                    created,
+                ) = models.AggregatedCountryQuotaMetric.objects.get_or_create(
+                    country=country,
+                    date=date,
+                    quota_name=quota_name,
+                    defaults={'quota': value or 0},
+                )
+
+                create_intermediate_records(
+                    date=obj.date,
+                    country=country,
+                    quota_name=quota_name,
+                )
+
+                if created:
+                    print(country, date, quota_name, value)
+
+        return
