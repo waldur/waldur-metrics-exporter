@@ -5,6 +5,7 @@
 - manage.py migrate
 - manage.py update_country_limits
 - manage.py update_country_usage
+- manage.py update_country_quotas
 
 ## Available env variables
 

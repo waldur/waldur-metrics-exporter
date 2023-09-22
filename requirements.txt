@@ -5,3 +5,4 @@ django-model-utils==4.2.0
 psycopg2-binary==2.9.5
 pytz==2023.3
 sqlparse==0.4.4
+python-dateutil==2.8.2
