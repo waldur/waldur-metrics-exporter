@@ -4,10 +4,14 @@ metadata:
   name: waldur-metrics-exporter-shell
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      unit: waldur-metrics-exporter-shell
   template:
     metadata:
       labels:
         app: waldur-metrics-exporter
+        unit: waldur-metrics-exporter-shell
     spec:
       containers:
       - name: waldur-metrics-exporter-shell

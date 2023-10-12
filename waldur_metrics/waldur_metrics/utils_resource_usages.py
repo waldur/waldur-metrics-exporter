@@ -45,7 +45,7 @@ def update_resource_usages(force=False):
 
         if created:
             print(
-                'Usage has been added. Resource ID: %s, date: %s, type: %s, value: %s, since of creating: %s'
+                'Usage has been added. Resource ID: %s, date: %s, type: %s, value: %s, since creation: %s'
                 % (
                     usage.resource_id,
                     usage.date,
