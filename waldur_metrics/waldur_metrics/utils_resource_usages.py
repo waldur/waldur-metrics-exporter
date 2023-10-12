@@ -28,6 +28,7 @@ def update_resource_usages(force=False):
             continue
 
         prev_usage = get_prev_value(usage)
+        since_creation = prev_usage + usage.usage
         obj, created = models.ResourceUsage.objects.update_or_create(
             resource_name=usage.resource.name,
             resource_uuid=usage.resource.uuid.hex.replace('-', ''),
@@ -39,18 +40,20 @@ def update_resource_usages(force=False):
             type=usage.component.type,
             defaults={
                 'usage': usage.usage,
-                'usage_since_creation': prev_usage + usage.usage,
+                'usage_since_creation': since_creation,
             },
         )
 
-        if created:
-            print(
-                'Usage has been added. Resource ID: %s, date: %s, type: %s, value: %s, since creation: %s'
-                % (
-                    usage.resource_id,
-                    usage.date,
-                    usage.component.type,
-                    usage.usage,
-                    prev_usage + usage.usage,
-                )
+        print(
+            'Usage has been %s. Resource UUID: %s, resource name: %s, '
+            'date: %s, type: %s, value: %s, since creation: %s'
+            % (
+                'added' if created else 'updated',
+                usage.resource.uuid.hex.replace('-', ''),
+                usage.resource.name,
+                usage.date,
+                usage.component.type,
+                usage.usage,
+                since_creation,
             )
+        )
