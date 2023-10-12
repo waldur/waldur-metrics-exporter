@@ -41,6 +41,8 @@
 
     ```bash
     kubectl apply -f k8s/tracker_db_init.yaml -n puhuri-services
+   # to rerun migration on new changes, use
+    kubectl replace --force -f k8s/tracker_db_init.yaml -n puhuri-services
     ```
 
 4. Deploy aai_tracker cron jobs
@@ -49,4 +51,6 @@
     kubectl apply -f k8s/tracker_cron_limits.yaml -n puhuri-services
     kubectl apply -f k8s/tracker_cron_usage.yaml -n puhuri-services
     kubectl apply -f k8s/tracker_cron_quotas.yaml -n puhuri-services
+    kubectl apply -f k8s/tracker_cron_resource_limits.yaml -n puhuri-services
+    kubectl apply -f k8s/tracker_cron_resource_usages.yaml -n puhuri-services
     ```
