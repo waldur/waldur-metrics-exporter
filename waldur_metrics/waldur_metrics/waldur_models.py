@@ -6,6 +6,8 @@ from waldur_metrics.models import TimeStampedModel
 
 
 class Customer(models.Model):
+    uuid = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
     country = models.CharField(max_length=2)
 
     def save(self, *args, **kwargs):
@@ -17,12 +19,14 @@ class Customer(models.Model):
 
 
 class Project(TimeStampedModel):
+    uuid = models.CharField(max_length=255)
     customer = models.ForeignKey(
         Customer,
         verbose_name=_('organization'),
         related_name='projects',
         on_delete=models.CASCADE,
     )
+    name = models.CharField(max_length=255)
 
     def save(self, *args, **kwargs):
         pass
@@ -33,6 +37,8 @@ class Project(TimeStampedModel):
 
 
 class Resource(TimeStampedModel):
+    uuid = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     limits = models.JSONField(blank=True, default=dict)
 
@@ -42,6 +48,17 @@ class Resource(TimeStampedModel):
     class Meta:
         managed = False
         db_table = 'marketplace_resource'
+
+
+class Order(TimeStampedModel):
+    approved_at = models.DateTimeField(null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        pass
+
+    class Meta:
+        managed = False
+        db_table = 'marketplace_order'
 
 
 class OrderItem(TimeStampedModel):
@@ -78,6 +95,7 @@ class OrderItem(TimeStampedModel):
     resource = models.ForeignKey(
         on_delete=models.CASCADE, to=Resource, null=True, blank=True
     )
+    order = models.ForeignKey(on_delete=models.CASCADE, to=Order, related_name='items')
     state = FSMIntegerField(default=States.PENDING, choices=States.CHOICES)
     type = models.PositiveSmallIntegerField(choices=Types.CHOICES, default=Types.CREATE)
     limits = models.JSONField(blank=True, default=dict)

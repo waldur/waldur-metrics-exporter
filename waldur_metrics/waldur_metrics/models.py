@@ -61,3 +61,36 @@ class AggregatedCountryQuotaMetric(TimeStampedModel):
 
     class Meta:
         db_table = 'aggregated_country_quota_metrics'
+
+
+class ResourceLimit(TimeStampedModel):
+    date = models.DateField()
+    resource_name = models.CharField(max_length=255)
+    resource_uuid = models.CharField(max_length=255)
+    project_name = models.CharField(max_length=255)
+    project_uuid = models.CharField(max_length=255)
+    customer_name = models.CharField(max_length=255)
+    customer_uuid = models.CharField(max_length=255)
+    limit_name = models.CharField(max_length=255)
+    limit_value = models.IntegerField()
+
+    class Meta:
+        db_table = 'resource_limits'
+
+
+class ResourceUsage(TimeStampedModel):
+    date = models.DateField()
+    resource_name = models.CharField(max_length=255)
+    resource_uuid = models.CharField(max_length=255)
+    project_name = models.CharField(max_length=255)
+    project_uuid = models.CharField(max_length=255)
+    customer_name = models.CharField(max_length=255)
+    customer_uuid = models.CharField(max_length=255)
+    type = models.CharField(max_length=255)
+    usage = models.DecimalField(default=0, decimal_places=2, max_digits=20)
+    usage_since_creation = models.DecimalField(
+        default=0, decimal_places=2, max_digits=20
+    )
+
+    class Meta:
+        db_table = 'resource_usages'
