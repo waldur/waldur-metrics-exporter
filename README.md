@@ -50,4 +50,3 @@
     kubectl apply -f k8s/tracker_cron_usage.yaml -n puhuri-services
     kubectl apply -f k8s/tracker_cron_quotas.yaml -n puhuri-services
     ```
-
