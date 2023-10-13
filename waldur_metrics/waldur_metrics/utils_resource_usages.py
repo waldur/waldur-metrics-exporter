@@ -2,13 +2,40 @@ from waldur_metrics import models, waldur_models
 
 
 def get_prev_value(usage):
-    prev = (
-        models.ResourceUsage.objects.filter(
-            resource_uuid=usage.resource.uuid.hex.replace('-', ''),
-            type=usage.component.type,
+    qs = models.ResourceUsage.objects.filter(
+        resource_uuid=usage.resource.uuid.hex.replace('-', ''),
+        type=usage.component.type,
+    ).order_by('-date')
+
+    print('Prev all usages:')
+    print(
+        [
+            'Resource: %s (%s), Data: %s, type: %s, usage: %s, since_creation: %s'
+            % (
+                p.resource_name,
+                p.resource_uuid,
+                p.date,
+                p.type,
+                p.usage,
+                p.usage_since_creation,
+            )
+            for p in qs
+        ]
+    )
+
+    prev = qs.first()
+
+    print(
+        'Prev usage:'
+        'Resource: %s (%s), Data: %s, type: %s, usage: %s, since_creation: %s'
+        % (
+            prev.resource_name,
+            prev.resource_uuid,
+            prev.date,
+            prev.type,
+            prev.usage,
+            prev.usage_since_creation,
         )
-        .order_by('-date')
-        .first()
     )
 
     if not prev:
@@ -21,7 +48,9 @@ def update_resource_usages(force=False):
     if force:
         models.ResourceUsage.objects.all().delete()
 
-    usages = waldur_models.ComponentUsage.objects.using('waldur').order_by('date')
+    usages = waldur_models.ComponentUsage.objects.using('waldur').order_by(
+        'resource_id', 'date'
+    )
 
     for usage in usages:
         if not usage.usage:
