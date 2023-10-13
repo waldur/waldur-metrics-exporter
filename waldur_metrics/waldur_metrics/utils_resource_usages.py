@@ -24,19 +24,19 @@ def get_prev_value(usage):
     )
 
     prev = qs.first()
-
-    print(
-        'Prev usage:'
-        'Resource: %s (%s), Data: %s, type: %s, usage: %s, since_creation: %s'
-        % (
-            prev.resource_name,
-            prev.resource_uuid,
-            prev.date,
-            prev.type,
-            prev.usage,
-            prev.usage_since_creation,
+    if prev:
+        print(
+            'Prev usage:'
+            'Resource: %s (%s), Data: %s, type: %s, usage: %s, since_creation: %s'
+            % (
+                prev.resource_name,
+                prev.resource_uuid,
+                prev.date,
+                prev.type,
+                prev.usage,
+                prev.usage_since_creation,
+            )
         )
-    )
 
     if not prev:
         return 0
