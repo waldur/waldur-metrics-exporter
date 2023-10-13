@@ -1,43 +1,18 @@
+import datetime
+
 from waldur_metrics import models, waldur_models
 
 
 def get_prev_value(usage):
-    qs = models.ResourceUsage.objects.filter(
-        resource_uuid=usage.resource.uuid.hex.replace('-', ''),
-        type=usage.component.type,
-        date__lt=usage.date
-    ).order_by('-date')
-
-    print('Prev all usages:')
-    print(
-        [
-            'Resource: %s (%s), Data: %s, type: %s, usage: %s, since_creation: %s'
-            % (
-                p.resource_name,
-                p.resource_uuid,
-                p.date,
-                p.type,
-                p.usage,
-                p.usage_since_creation,
-            )
-            for p in qs
-        ]
-    )
-
-    prev = qs.first()
-    if prev:
-        print(
-            'Prev usage:'
-            'Resource: %s (%s), Data: %s, type: %s, usage: %s, since_creation: %s'
-            % (
-                prev.resource_name,
-                prev.resource_uuid,
-                prev.date,
-                prev.type,
-                prev.usage,
-                prev.usage_since_creation,
-            )
+    prev = (
+        models.ResourceUsage.objects.filter(
+            resource_uuid=usage.resource.uuid.hex.replace('-', ''),
+            type=usage.component.type,
+            date__lt=usage.date,
         )
+        .order_by('-date')
+        .first()
+    )
 
     if not prev:
         return 0
@@ -52,6 +27,11 @@ def update_resource_usages(force=False):
     usages = waldur_models.ComponentUsage.objects.using('waldur').order_by(
         'resource_id', 'date'
     )
+
+    if not force:
+        usages = usages.filter(
+            date__lt=datetime.date.today() - datetime.timedelta(days=100)
+        )
 
     for usage in usages:
         if not usage.usage:
@@ -74,16 +54,16 @@ def update_resource_usages(force=False):
             },
         )
 
-        print(
-            'Usage has been %s. Resource UUID: %s, resource name: %s, '
-            'date: %s, type: %s, value: %s, since creation: %s'
-            % (
-                'added' if created else 'updated',
-                usage.resource.uuid.hex.replace('-', ''),
-                usage.resource.name,
-                usage.date,
-                usage.component.type,
-                usage.usage,
-                since_creation,
+        if created:
+            print(
+                'Usage has been added. Resource UUID: %s, resource name: %s, '
+                'date: %s, type: %s, value: %s, since creation: %s'
+                % (
+                    usage.resource.uuid.hex.replace('-', ''),
+                    usage.resource.name,
+                    usage.date,
+                    usage.component.type,
+                    usage.usage,
+                    since_creation,
+                )
             )
-        )
