@@ -5,6 +5,7 @@ def get_prev_value(usage):
     qs = models.ResourceUsage.objects.filter(
         resource_uuid=usage.resource.uuid.hex.replace('-', ''),
         type=usage.component.type,
+        date__lt=usage.date
     ).order_by('-date')
 
     print('Prev all usages:')
