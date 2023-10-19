@@ -37,10 +37,28 @@ class Project(TimeStampedModel):
 
 
 class Resource(TimeStampedModel):
+    class States:
+        CREATING = 1
+        OK = 2
+        ERRED = 3
+        UPDATING = 4
+        TERMINATING = 5
+        TERMINATED = 6
+
+        CHOICES = (
+            (CREATING, 'Creating'),
+            (OK, 'OK'),
+            (ERRED, 'Erred'),
+            (UPDATING, 'Updating'),
+            (TERMINATING, 'Terminating'),
+            (TERMINATED, 'Terminated'),
+        )
+
     uuid = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     limits = models.JSONField(blank=True, default=dict)
+    state = FSMIntegerField(default=States.CREATING, choices=States.CHOICES)
 
     def save(self, *args, **kwargs):
         pass

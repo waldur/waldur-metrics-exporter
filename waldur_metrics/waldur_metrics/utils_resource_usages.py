@@ -1,6 +1,11 @@
 import datetime
+import os
 
 from waldur_metrics import models, waldur_models
+
+DAYS_FOR_SYNC = int(
+    os.environ.get('DAYS_FOR_SYNC', '100')
+)  # Number of days for everydays sync
 
 
 def get_prev_value(usage):
@@ -30,7 +35,7 @@ def update_resource_usages(force=False):
 
     if not force:
         usages = usages.filter(
-            date__lt=datetime.date.today() - datetime.timedelta(days=100)
+            date__lt=datetime.date.today() - datetime.timedelta(days=DAYS_FOR_SYNC)
         )
 
     for usage in usages:
