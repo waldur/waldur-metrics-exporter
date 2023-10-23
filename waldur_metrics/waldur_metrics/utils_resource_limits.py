@@ -11,11 +11,21 @@ def date_iterator(start, end):
 
     while current <= end:
         yield (
-            datetime.date(year=current.year, month=current.month, day=1),
-            datetime.date(
+            datetime.datetime(
+                year=current.year,
+                month=current.month,
+                day=1,
+                hour=0,
+                minute=0,
+                second=0,
+            ),
+            datetime.datetime(
                 year=current.year,
                 month=current.month,
                 day=calendar.monthrange(current.year, current.month)[1],
+                hour=23,
+                minute=59,
+                second=59,
             ),
         )
         current = current + relativedelta(months=1)
