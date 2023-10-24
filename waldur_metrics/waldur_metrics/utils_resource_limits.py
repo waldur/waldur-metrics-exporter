@@ -91,14 +91,14 @@ def copy_limits(previous, start):
     return result
 
 
-def update_resource_limits(force=False):
+def resource_date_iterator(force, metric_model):
     now = datetime.datetime.now()
     print('Start: %s' % now)
 
     if force:
-        models.ResourceLimit.objects.all().delete()
+        metric_model.objects.all().delete()
 
-    if not models.ResourceLimit.objects.count():
+    if not metric_model.objects.count():
         force = True
 
     resources = (
@@ -120,7 +120,6 @@ def update_resource_limits(force=False):
 
     for resource in resources:
         terminated_date = None
-        previous = None
 
         if force:
             terminate_item = (
@@ -141,37 +140,46 @@ def update_resource_limits(force=False):
         for start, end in date_iterator(
             created_date if force else now, terminated_date or now
         ):
-            print(
-                'Sync resource: %s, from: %s, to: %s created: %s, terminated: %s'
-                % (resource.uuid.hex, start, end, created_date, terminated_date)
+            yield resource, start, end, created_date, terminated_date
+
+
+def update_resource_limits(force=False):
+    previous = None
+
+    for resource, start, end, created_date, terminated_date in resource_date_iterator(
+        force, models.ResourceLimit
+    ):
+        print(
+            'Sync resource: %s, from: %s, to: %s created: %s, terminated: %s'
+            % (resource.uuid.hex, start, end, created_date, terminated_date)
+        )
+
+        item = (
+            waldur_models.OrderItem.objects.using('waldur')
+            .filter(
+                state=waldur_models.OrderItem.States.DONE,
+                type__in=[
+                    waldur_models.OrderItem.Types.CREATE,
+                    waldur_models.OrderItem.Types.UPDATE,
+                ],
+                resource_id=resource.id,
+                order__approved_at__gte=start,
+                order__approved_at__lte=end,
             )
+            .exclude(limits={})
+            .order_by('-order__approved_at')
+        ).first()
 
-            item = (
-                waldur_models.OrderItem.objects.using('waldur')
-                .filter(
-                    state=waldur_models.OrderItem.States.DONE,
-                    type__in=[
-                        waldur_models.OrderItem.Types.CREATE,
-                        waldur_models.OrderItem.Types.UPDATE,
-                    ],
-                    resource_id=resource.id,
-                    order__approved_at__gte=start,
-                    order__approved_at__lte=end,
-                )
-                .exclude(limits={})
-                .order_by('-order__approved_at')
-            ).first()
-
-            if item:
-                previous = create_limits(item)
-            elif previous and previous[0].resource_uuid == resource.uuid.hex:
-                copy_limits(previous, start)
-            else:
-                print(
-                    'Sync of resource has been skipped because item and previous item are not found. '
-                    'Resource %s, state %s, from %s, to %s.'
-                    % (resource.uuid.hex, resource.get_state_display(), start, end)
-                )
-                continue
+        if item:
+            previous = create_limits(item)
+        elif previous and previous[0].resource_uuid == resource.uuid.hex:
+            copy_limits(previous, start)
+        else:
+            print(
+                'Sync of resource has been skipped because item and previous item are not found. '
+                'Resource %s, state %s, from %s, to %s.'
+                % (resource.uuid.hex, resource.get_state_display(), start, end)
+            )
+            continue
 
     print('End: %s' % datetime.datetime.now())
