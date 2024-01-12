@@ -137,13 +137,13 @@ def update_country_usage(deep=False, year=None, country=None, component_type=Non
 
 def get_grow_limit(limit, item):
     prev_items = (
-        waldur_models.OrderItem.objects.using('waldur')
+        waldur_models.Order.objects.using('waldur')
         .filter(
             resource=item.resource,
-            state=waldur_models.OrderItem.States.DONE,
+            state=waldur_models.Order.States.DONE,
             type__in=[
-                waldur_models.OrderItem.Types.CREATE,
-                waldur_models.OrderItem.Types.UPDATE,
+                waldur_models.Order.Types.CREATE,
+                waldur_models.Order.Types.UPDATE,
             ],
             created__lt=item.created,
         )
@@ -199,12 +199,12 @@ def update_country_limits(deep=False, year=None, country=None, component_type=No
                 project__customer__country=country,
                 created__lt=start,
             )
-            order_items = waldur_models.OrderItem.objects.using('waldur').filter(
+            order_items = waldur_models.Order.objects.using('waldur').filter(
                 resource__in=old_resources,
                 created__gte=start,
                 created__lte=end,
-                state=waldur_models.OrderItem.States.DONE,
-                type=waldur_models.OrderItem.Types.UPDATE,
+                state=waldur_models.Order.States.DONE,
+                type=waldur_models.Order.Types.UPDATE,
             )
 
             for limit in component_types:
