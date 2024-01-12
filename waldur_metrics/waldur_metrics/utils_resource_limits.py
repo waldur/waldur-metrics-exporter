@@ -31,18 +31,18 @@ def date_iterator(start, end):
         current = current + relativedelta(months=1)
 
 
-def create_limits(item):
+def create_limits(order):
     result = []
 
-    for name, value in item.limits.items():
+    for name, value in order.limits.items():
         limit, created = models.ResourceLimit.objects.update_or_create(
-            resource_name=item.resource.name,
-            resource_uuid=item.resource.uuid.hex.replace('-', ''),
-            project_name=item.resource.project.name,
-            project_uuid=item.resource.project.uuid.hex.replace('-', ''),
-            customer_name=item.resource.project.customer.name,
-            customer_uuid=item.resource.project.customer.uuid.hex.replace('-', ''),
-            date=item.order.approved_at.date(),
+            resource_name=order.resource.name,
+            resource_uuid=order.resource.uuid.hex.replace('-', ''),
+            project_name=order.resource.project.name,
+            project_uuid=order.resource.project.uuid.hex.replace('-', ''),
+            customer_name=order.resource.project.customer.name,
+            customer_uuid=order.resource.project.customer.uuid.hex.replace('-', ''),
+            date=order.consumer_reviewed_at.date(),
             limit_name=name,
             defaults={
                 'limit_value': value,
@@ -109,10 +109,10 @@ def resource_date_iterator(force, metric_model):
 
     if not force:
         terminate_resource_uuids = set(
-            waldur_models.OrderItem.objects.using('waldur')
+            waldur_models.Order.objects.using('waldur')
             .filter(
-                state=waldur_models.OrderItem.States.DONE,
-                type=waldur_models.OrderItem.Types.TERMINATE,
+                state=waldur_models.Order.States.DONE,
+                type=waldur_models.Order.Types.TERMINATE,
             )
             .values_list('resource__uuid', flat=True)
         )
@@ -122,18 +122,20 @@ def resource_date_iterator(force, metric_model):
         terminated_date = None
 
         if force:
-            terminate_item = (
-                waldur_models.OrderItem.objects.using('waldur')
+            terminate_order = (
+                waldur_models.Order.objects.using('waldur')
                 .filter(
                     resource_id=resource.id,
-                    state=waldur_models.OrderItem.States.DONE,
-                    type=waldur_models.OrderItem.Types.TERMINATE,
+                    state=waldur_models.Order.States.DONE,
+                    type=waldur_models.Order.Types.TERMINATE,
                 )
                 .first()
             )
 
-            if terminate_item:
-                terminated_date = terminate_item.order.approved_at.replace(tzinfo=None)
+            if terminate_order:
+                terminated_date = terminate_order.consumer_reviewed_at.replace(
+                    tzinfo=None
+                )
 
         created_date = resource.created.replace(tzinfo=None)
 
@@ -154,29 +156,29 @@ def update_resource_limits(force=False):
             % (resource.uuid.hex, start, end, created_date, terminated_date)
         )
 
-        item = (
-            waldur_models.OrderItem.objects.using('waldur')
+        order = (
+            waldur_models.Order.objects.using('waldur')
             .filter(
-                state=waldur_models.OrderItem.States.DONE,
+                state=waldur_models.Order.States.DONE,
                 type__in=[
-                    waldur_models.OrderItem.Types.CREATE,
-                    waldur_models.OrderItem.Types.UPDATE,
+                    waldur_models.Order.Types.CREATE,
+                    waldur_models.Order.Types.UPDATE,
                 ],
                 resource_id=resource.id,
-                order__approved_at__gte=start,
-                order__approved_at__lte=end,
+                consumer_reviewed_at__gte=start,
+                consumer_reviewed_at__lte=end,
             )
             .exclude(limits={})
-            .order_by('-order__approved_at')
+            .order_by('-consumer_reviewed_at')
         ).first()
 
-        if item:
-            previous = create_limits(item)
+        if order:
+            previous = create_limits(order)
         elif previous and previous[0].resource_uuid == resource.uuid.hex:
             copy_limits(previous, start)
         else:
             print(
-                'Sync of resource has been skipped because item and previous item are not found. '
+                'Sync of resource has been skipped because order and previous order are not found. '
                 'Resource %s, state %s, from %s, to %s.'
                 % (resource.uuid.hex, resource.get_state_display(), start, end)
             )

@@ -69,17 +69,6 @@ class Resource(TimeStampedModel):
 
 
 class Order(TimeStampedModel):
-    approved_at = models.DateTimeField(null=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        pass
-
-    class Meta:
-        managed = False
-        db_table = 'marketplace_order'
-
-
-class OrderItem(TimeStampedModel):
     class Types:
         CREATE = 1
         UPDATE = 2
@@ -92,29 +81,32 @@ class OrderItem(TimeStampedModel):
         )
 
     class States:
-        PENDING = 1
+        PENDING_CONSUMER = 1
+        PENDING_PROVIDER = 7
         EXECUTING = 2
         DONE = 3
         ERRED = 4
-        TERMINATED = 5
-        TERMINATING = 6
+        CANCELED = 5
+        REJECTED = 6
 
         CHOICES = (
-            (PENDING, 'pending'),
-            (EXECUTING, 'executing'),
-            (DONE, 'done'),
-            (ERRED, 'erred'),
-            (TERMINATED, 'terminated'),
-            (TERMINATING, 'terminating'),
+            (PENDING_CONSUMER, "pending-consumer"),
+            (PENDING_PROVIDER, "pending-provider"),
+            (EXECUTING, "executing"),
+            (DONE, "done"),
+            (ERRED, "erred"),
+            (CANCELED, "canceled"),
+            (REJECTED, "rejected"),
         )
 
-        TERMINAL_STATES = {DONE, ERRED, TERMINATED}
+        TERMINAL_STATES = {DONE, ERRED, CANCELED, REJECTED}
 
+    state = FSMIntegerField(default=States.PENDING_CONSUMER, choices=States.CHOICES)
+    consumer_reviewed_at = models.DateTimeField(null=True, blank=True)
+    provider_reviewed_at = models.DateTimeField(null=True, blank=True)
     resource = models.ForeignKey(
         on_delete=models.CASCADE, to=Resource, null=True, blank=True
     )
-    order = models.ForeignKey(on_delete=models.CASCADE, to=Order, related_name='items')
-    state = FSMIntegerField(default=States.PENDING, choices=States.CHOICES)
     type = models.PositiveSmallIntegerField(choices=Types.CHOICES, default=Types.CREATE)
     limits = models.JSONField(blank=True, default=dict)
 
@@ -123,7 +115,7 @@ class OrderItem(TimeStampedModel):
 
     class Meta:
         managed = False
-        db_table = 'marketplace_orderitem'
+        db_table = 'marketplace_order'
 
 
 class OfferingComponent(models.Model):
