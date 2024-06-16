@@ -21,6 +21,10 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "500m"
+        volumeMounts:
+          - name: country-quotas
+            mountPath: /opt/country-quotas.csv
+            subPath: country-quotas.csv
         env:
           - name: START_YEAR
             value: "2021"
@@ -50,3 +54,9 @@ spec:
             value: "waldur-postgresql-repl.puhuri-core.svc.cluster.local"
           - name: SOURCE_DB_PORT
             value: "5432"
+          - name: COUNTRY_LIMITS_FILE_PATH
+            value: "/opt/country-quotas.csv"
+      volumes:
+        - name: country-quotas
+          configMap:
+            name: country-quotas
