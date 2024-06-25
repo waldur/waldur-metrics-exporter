@@ -54,17 +54,26 @@ def create_usage(usage, resource, usage_type, date):
     return usage
 
 
-def copy_usage(previous, date):
-    usage = models.ResourceUsage.objects.filter(
-        resource_uuid=previous.resource_uuid,
-        project_uuid=previous.project_uuid,
-        customer_uuid=previous.customer_uuid,
-        type=previous.type,
-        date=date,
-    ).first()
+def copy_last_months_usage(resource, start, usage_type):
+    if models.ResourceUsage.objects.filter(
+        resource_uuid=resource.uuid.hex,
+        type=usage_type,
+        date=start,
+    ).exists():
+        return
 
-    if usage:
-        return usage
+    previous = (
+        models.ResourceUsage.objects.filter(
+            resource_uuid=resource.uuid.hex,
+            type=usage_type,
+            date__lt=start,
+        )
+        .order_by('-date')
+        .first()
+    )
+
+    if not previous:
+        return
 
     usage = models.ResourceUsage.objects.create(
         **{
@@ -72,7 +81,7 @@ def copy_usage(previous, date):
             for field in previous._meta.fields
             if field.name != 'id' and field.name != 'date'
         },
-        date=date
+        date=start
     )
 
     print(
@@ -86,12 +95,8 @@ def copy_usage(previous, date):
         )
     )
 
-    return usage
-
 
 def update_resource_usages(force=False):
-    previous = None
-
     for resource, start, end, created_date, terminated_date in resource_date_iterator(
         force, models.ResourceUsage
     ):
@@ -100,9 +105,7 @@ def update_resource_usages(force=False):
             % (resource.uuid.hex, start, end, created_date, terminated_date)
         )
 
-        types = list(resource.limits.keys())
-
-        for usage_type in types:
+        for usage_type in resource.limits.keys():
             usage = (
                 waldur_models.ComponentUsage.objects.using('waldur')
                 .filter(
@@ -115,22 +118,9 @@ def update_resource_usages(force=False):
             ).aggregate(Sum("usage"))['usage__sum']
 
             if usage is not None:
+                create_usage(usage, resource, usage_type, start)
                 print(usage, resource.id, usage_type, start, end)
-
-            if usage is not None:
-                previous = create_usage(usage, resource, usage_type, start)
-            elif (
-                previous
-                and previous.resource_uuid == resource.uuid.hex
-                and previous.type == usage_type
-            ):
-                copy_usage(previous, start)
             else:
-                # print(
-                #     'Sync of resource has been skipped because item and previous item are not found. '
-                #     'Resource %s, state %s, from %s, to %s.'
-                #     % (resource.uuid.hex, resource.get_state_display(), start, end)
-                # )
-                continue
+                copy_last_months_usage(resource, start, usage_type)
 
     print('End: %s' % datetime.datetime.now())
