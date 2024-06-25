@@ -47,7 +47,7 @@ WSGI_APPLICATION = 'waldur_metrics.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get("METRICS_DB_NAME", 'waldur-metrics'),
+        'NAME': os.environ.get("METRICS_DB_NAME", 'waldur_metrics'),
         'USER': os.environ.get("METRICS_DB_USER", 'postgres'),
         'PASSWORD': os.environ.get("METRICS_DB_PASSWORD", '1234'),
         'HOST': os.environ.get("METRICS_DB_HOST", '127.0.0.1'),
