@@ -94,3 +94,10 @@ class ResourceUsage(TimeStampedModel):
 
     class Meta:
         db_table = 'resource_usages'
+        unique_together = (
+            'date',
+            'resource_uuid',
+            'project_uuid',
+            'customer_uuid',
+            'type',
+        )

@@ -26,16 +26,16 @@ def get_prev_value(resource, usage_type, date):
 
 def create_usage(usage, resource, usage_type, date):
     usage, created = models.ResourceUsage.objects.update_or_create(
-        resource_name=resource.name,
         resource_uuid=resource.uuid.hex.replace('-', ''),
-        project_name=resource.project.name,
         project_uuid=resource.project.uuid.hex.replace('-', ''),
-        customer_name=resource.project.customer.name,
         customer_uuid=resource.project.customer.uuid.hex.replace('-', ''),
         date=date,
         type=usage_type,
-        usage_since_creation=get_prev_value(resource, usage_type, date) + usage,
         defaults={
+            'resource_name': resource.name,
+            'project_name': resource.project.name,
+            'customer_name': resource.project.customer.name,
+            'usage_since_creation': get_prev_value(resource, usage_type, date) + usage,
             'usage': usage,
         },
     )
