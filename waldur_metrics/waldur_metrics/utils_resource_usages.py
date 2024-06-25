@@ -55,6 +55,17 @@ def create_usage(usage, resource, usage_type, date):
 
 
 def copy_usage(previous, date):
+    usage = models.ResourceUsage.objects.filter(
+        resource_uuid=previous.resource_uuid,
+        project_uuid=previous.project_uuid,
+        customer_uuid=previous.customer_uuid,
+        type=previous.type,
+        date=date,
+    ).first()
+
+    if usage:
+        return usage
+
     usage = models.ResourceUsage.objects.create(
         **{
             field.name: getattr(previous, field.name)
@@ -108,7 +119,11 @@ def update_resource_usages(force=False):
 
             if usage is not None:
                 previous = create_usage(usage, resource, usage_type, start)
-            elif previous and previous.resource_uuid == resource.uuid.hex:
+            elif (
+                previous
+                and previous.resource_uuid == resource.uuid.hex
+                and previous.type == usage_type
+            ):
                 copy_usage(previous, start)
             else:
                 # print(
