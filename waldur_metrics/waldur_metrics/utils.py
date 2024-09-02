@@ -264,15 +264,13 @@ def update_country_quotas(force=False):
     if force:
         models.AggregatedCountryQuotaMetric.objects.all().delete()
 
-    def create_intermediate_records(date, country, quota_name):
-        date = date.date()
-
+    def create_intermediate_records(metric_date, metric_country, metric_quota_name):
         try:
             prev = (
                 models.AggregatedCountryQuotaMetric.objects.filter(
-                    country=country,
-                    quota_name=quota_name,
-                    date__lt=date,
+                    country=metric_country,
+                    quota_name=metric_quota_name,
+                    date__lt=metric_date,
                 )
                 .order_by('-date')
                 .first()
@@ -285,16 +283,16 @@ def update_country_quotas(force=False):
 
         current = prev.date + relativedelta(months=1)
 
-        while current < date:
+        while current < metric_date:
             (obj, created,) = models.AggregatedCountryQuotaMetric.objects.get_or_create(
-                country=country,
+                country=metric_country,
                 date=current,
-                quota_name=quota_name,
+                quota_name=metric_quota_name,
                 defaults={'quota': prev.quota or 0},
             )
 
             if created:
-                print(country, date, quota_name, value)
+                print(metric_country, metric_date, metric_quota_name, value)
 
             current += relativedelta(months=1)
 
@@ -332,9 +330,9 @@ def update_country_quotas(force=False):
                 )
 
                 create_intermediate_records(
-                    date=obj.date,
-                    country=country,
-                    quota_name=quota_name,
+                    metric_date=obj.date,
+                    metric_country=country,
+                    metric_quota_name=quota_name,
                 )
 
                 if created:
