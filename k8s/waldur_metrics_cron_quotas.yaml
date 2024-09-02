@@ -3,7 +3,7 @@ kind: CronJob
 metadata:
   name: waldur-metrics-exporter-quota-cron
 spec:
-  schedule: "50 6 1/5 * *"
+  schedule: "50 6 * * *"
   jobTemplate:
     spec:
       ttlSecondsAfterFinished: 1200
