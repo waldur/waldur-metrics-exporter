@@ -308,7 +308,7 @@ def update_country_quotas(force=False):
 
         for row in csvfile:
             data = row.split(',')
-            date = datetime.datetime.strptime(data[0], '%d.%m.%Y')
+            date = datetime.datetime.strptime(data[0], '%d.%m.%Y').date()
 
             for index, value in enumerate(data[1:]):
                 try:
